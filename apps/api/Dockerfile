@@ -9,7 +9,7 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN npx prisma generate
+RUN pnpm exec prisma generate
 RUN pnpm --filter @mission-control/api build
 
 FROM base AS runner
