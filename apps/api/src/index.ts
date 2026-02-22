@@ -1,47 +1,64 @@
 import Fastify from 'fastify';
-import { prisma } from './lib/prisma';
+import { randomUUID } from 'crypto';
+import db from './lib/db';
 import { openClaw } from './lib/openclaw';
 
 const fastify = Fastify({ logger: true });
 
-// Auth Middleware Stub
+// CORS for frontend
+fastify.addHook('onSend', async (request, reply) => {
+    reply.header('Access-Control-Allow-Origin', '*');
+    reply.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    reply.header('Access-Control-Allow-Headers', 'Content-Type');
+});
 fastify.addHook('preHandler', async (request, reply) => {
-    // Simple check for MVP
-    const auth = request.headers.authorization;
-    if (!auth && request.url.startsWith('/api') && !request.url.includes('/auth')) {
-        // throw new Error('Unauthorized'); // Enable later
-    }
+    if (request.method === 'OPTIONS') { reply.send(); }
 });
 
-// Routes
-fastify.get('/api/status', async () => {
-    return openClaw.getStatus();
-});
+// Status
+fastify.get('/api/status', async () => openClaw.getStatus());
 
-fastify.get('/api/agents', async () => {
-    return prisma.agent.findMany();
-});
+// Agents
+fastify.get('/api/agents', async () => db.prepare('SELECT * FROM agents ORDER BY createdAt DESC').all());
 
 fastify.post('/api/agents', async (request: any) => {
-    return prisma.agent.create({ data: request.body });
+    const { name, description, systemPrompt, model, maxTokens, historyLimit, ttlMinutes, toolsAllowed } = request.body;
+    const id = randomUUID();
+    db.prepare('INSERT INTO agents (id,name,description,systemPrompt,model,maxTokens,historyLimit,ttlMinutes,toolsAllowed) VALUES (?,?,?,?,?,?,?,?,?)')
+        .run(id, name, description || '', systemPrompt, model, maxTokens || 2000, historyLimit || 10, ttlMinutes || 60, toolsAllowed || '');
+    return db.prepare('SELECT * FROM agents WHERE id = ?').get(id);
 });
 
-fastify.get('/api/runs', async () => {
-    return prisma.run.findMany({ orderBy: { createdAt: 'desc' } });
+fastify.put('/api/agents/:id', async (request: any) => {
+    const { name, description, systemPrompt, model, maxTokens, historyLimit, ttlMinutes, toolsAllowed } = request.body;
+    db.prepare('UPDATE agents SET name=?,description=?,systemPrompt=?,model=?,maxTokens=?,historyLimit=?,ttlMinutes=?,toolsAllowed=? WHERE id=?')
+        .run(name, description, systemPrompt, model, maxTokens, historyLimit, ttlMinutes, toolsAllowed, request.params.id);
+    return db.prepare('SELECT * FROM agents WHERE id = ?').get(request.params.id);
 });
 
-fastify.get('/api/logs', async () => {
-    return openClaw.getLogs();
+fastify.delete('/api/agents/:id', async (request: any) => {
+    db.prepare('DELETE FROM agents WHERE id = ?').run(request.params.id);
+    return { success: true };
 });
 
-fastify.post('/api/settings/apply-patch', async (request: any) => {
-    return openClaw.applyPatch(request.body);
+// Runs
+fastify.get('/api/runs', async () => db.prepare('SELECT * FROM runs ORDER BY createdAt DESC LIMIT 100').all());
+
+fastify.post('/api/runs', async (request: any) => {
+    const { agentId, input } = request.body;
+    const id = randomUUID();
+    db.prepare('INSERT INTO runs (id,agentId,status,input) VALUES (?,?,?,?)').run(id, agentId, 'pending', input || '');
+    return db.prepare('SELECT * FROM runs WHERE id = ?').get(id);
 });
 
-fastify.post('/api/system/restart-openclaw', async () => {
-    // Logic to execute 'docker restart openclaw'
-    return { status: 'restarting' };
-});
+// Logs
+fastify.get('/api/logs', async () => openClaw.getLogs());
+
+// Settings patch
+fastify.post('/api/settings/apply-patch', async (request: any) => openClaw.applyPatch(request.body));
+
+// Restart
+fastify.post('/api/system/restart-openclaw', async () => ({ status: 'restarting' }));
 
 const start = async () => {
     try {
