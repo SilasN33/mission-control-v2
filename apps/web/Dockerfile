@@ -1,12 +1,13 @@
 FROM node:20-alpine AS base
-RUN npm install -g pnpm
+RUN apk add --no-cache openssl libc6-compat
+RUN npm install -g pnpm@9
 
 FROM base AS builder
 WORKDIR /app
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 RUN pnpm --filter @mission-control/web build
