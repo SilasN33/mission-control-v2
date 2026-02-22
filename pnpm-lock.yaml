@@ -18,8 +18,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared
       '@prisma/client':
-        specifier: latest
-        version: 7.4.1(typescript@5.9.3)
+        specifier: ^5.22.0
+        version: 5.22.0
       fastify:
         specifier: latest
         version: 5.7.4
@@ -472,19 +472,13 @@ packages:
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
 
-  '@prisma/client-runtime-utils@7.4.1':
-    resolution: {integrity: sha512-8fy74OMYC7mt9cJ2MncIDk1awPRgmtXVvwTN2FlW4JVhbck8Dgt0wTkhPG85myfj4ZeP2stjF9Sdg12n5HrpQg==}
-
-  '@prisma/client@7.4.1':
-    resolution: {integrity: sha512-pgIll2W1NVdof37xLeyySW+yfQ4rI+ERGCRwnO3BjVOx42GpYq6jhTyuALK8VKirvJJIvImgfGDA2qwhYVvMuA==}
-    engines: {node: ^20.19 || ^22.12 || >=24.0}
+  '@prisma/client@5.22.0':
+    resolution: {integrity: sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA==}
+    engines: {node: '>=16.13'}
     peerDependencies:
       prisma: '*'
-      typescript: '>=5.4.0'
     peerDependenciesMeta:
       prisma:
-        optional: true
-      typescript:
         optional: true
 
   '@swc/helpers@0.5.15':
@@ -1059,13 +1053,7 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@prisma/client-runtime-utils@7.4.1': {}
-
-  '@prisma/client@7.4.1(typescript@5.9.3)':
-    dependencies:
-      '@prisma/client-runtime-utils': 7.4.1
-    optionalDependencies:
-      typescript: 5.9.3
+  '@prisma/client@5.22.0': {}
 
   '@swc/helpers@0.5.15':
     dependencies:
