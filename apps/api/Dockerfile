@@ -10,6 +10,8 @@ COPY packages/shared/package.json ./packages/shared/
 RUN pnpm install --frozen-lockfile
 
 COPY . .
+ENV PRISMA_GENERATE_SKIP_AUTOINSTALL=1
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=1
 RUN npx prisma generate --schema ./prisma/schema.prisma
 RUN pnpm --filter @mission-control/api build
 
