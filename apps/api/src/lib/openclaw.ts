@@ -1,5 +1,4 @@
 import { WebSocket } from 'ws';
-import { prisma } from './prisma';
 
 export class OpenClawClient {
     private ws: WebSocket | null = null;
