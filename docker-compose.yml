@@ -1,0 +1,44 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    ports:
+      - "3001:3001"
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - openclaw-net
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - api
+    networks:
+      - openclaw-net
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=mission_control
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d mission_control"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - openclaw-net
+
+networks:
+  openclaw-net:
+    driver: bridge

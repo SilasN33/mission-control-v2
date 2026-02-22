@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  systemPrompt String
+  model       String
+  maxTokens   Int      @default(2000)
+  historyLimit Int     @default(10)
+  ttlMinutes  Int      @default(60)
+  toolsAllowed String  // Comma separated or JSON
+  createdAt   DateTime @default(now())
+}
+
+model Run {
+  id           String   @id @default(cuid())
+  agentId      String
+  status       String
+  duration     Int?
+  costEstimate Float?
+  createdAt    DateTime @default(now())
+}
